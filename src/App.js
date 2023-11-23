@@ -1,25 +1,60 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState, useEffect } from "react";
+import FormBox from "./Formbox";
+import WeatherInfo from "./Weatherinfo";
+import InfoBox from "./Infobox";
 
-function App() {
+const API = "4e78ffb4c4694ec288790748232311";
+
+export default function App() {
+  const [getVal, setGetVal] = useState("");
+  const [display, setDisplay] = useState({});
+
+  function handleDefault(e) {
+    e.preventDefault();
+  }
+
+  useEffect(
+    function () {
+      const controller = new AbortController();
+
+      async function getApi() {
+        try {
+          const res = await fetch(
+            `https://api.weatherapi.com/v1/current.json?key=${API}&q=${getVal}`,
+            { signal: controller.signal }
+          );
+          const data = await res.json();
+
+          setDisplay(data);
+
+          console.log(data);
+        } catch (e) {
+          alert(e);
+        }
+
+        return function () {
+          controller.abort();
+        };
+      }
+      getApi();
+    },
+    [getVal]
+  );
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Main>
+      <FormBox
+        getVal={getVal}
+        handleDefault={handleDefault}
+        setGetVal={setGetVal}
+      ></FormBox>
+      <InfoBox display={display}>
+        <WeatherInfo display={display} />
+      </InfoBox>
+    </Main>
   );
 }
 
-export default App;
+function Main({ children }) {
+  return <main className="main">{children}</main>;
+}
